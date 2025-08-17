@@ -1,8 +1,8 @@
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../firebase.config";
 
-// Función para registrar un nuevo usuario
+// Registrar usuario
 export const registerUser = async (email: string, password: string) => {
-  const auth = getAuth();
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     return userCredential.user;
@@ -12,9 +12,8 @@ export const registerUser = async (email: string, password: string) => {
   }
 };
 
-// Función para loguear un usuario existente
+// Login usuario
 export const loginUser = async (email: string, password: string) => {
-  const auth = getAuth();
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     return userCredential.user;
