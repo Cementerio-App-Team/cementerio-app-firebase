@@ -1,140 +1,175 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate, createSearchParams } from "react-router-dom";
 
-/** Años desde `from` hasta el actual (descendente) */
-function getYears(from = 1900) {
-  const y = new Date().getFullYear();
-  return Array.from({ length: y - from + 1 }, (_, i) => String(y - i));
-}
+/** Tipos normalizados para la UI */
+type Provincia = { code: string; name: string };
+type Municipio = { code: string; name: string };
 
 export default function HomeForm() {
-  const [municipios, setMunicipios] = useState<string[]>([]);
-  const [nombreApellidos, setNombreApellidos] = useState("");
-  const [ciudad, setCiudad] = useState("");
-  const [pueblo, setPueblo] = useState("");
-  const [anio, setAnio] = useState("");
+  const [nombre, setNombre] = useState("");
+  const [provincia, setProvincia] = useState("");
+  const [municipio, setMunicipio] = useState("");
 
-  useEffect(() => {
-    fetch("/data/municipios_es.json")
-      .then((r) => r.json())
-      .then((arr: string[]) => setMunicipios(arr))
-      .catch(() => setMunicipios([]));
+  const [provincias, setProvincias] = useState<Provincia[]>([]);
+  const [municipios, setMunicipios] = useState<Municipio[]>([]);
+  const [loadingProv, setLoadingProv] = useState(true);
+  const [loadingMun, setLoadingMun] = useState(false);
+
+  // AÑOS 1900 → actual
+  const anios = useMemo(() => {
+    const now = new Date().getFullYear();
+    const arr: number[] = [];
+    for (let y = now; y >= 1900; y--) arr.push(y);
+    return arr;
   }, []);
 
-  const years = useMemo(() => getYears(1900), []);
+  /** Cargar provincias (una vez) */
+  useEffect(() => {
+    (async () => {
+      try {
+        setLoadingProv(true);
+        // ⬇️ URL con proxy Vite
+        const res = await fetch("/meteo/api/json/v2/provincias");
+        if (!res.ok) throw new Error(String(res.status));
+        const data = await res.json();
 
-  // IDs accesibles
-  const nameId = "campo-nombre";
-  const ciudadId = "campo-ciudad";
-  const puebloId = "campo-pueblo";
-  const anioId = "campo-anio";
+        const list = (Array.isArray(data) ? data : data.provincias || []) as any[];
+        const mapped: Provincia[] = list
+          .map((p) => ({
+            code: String(p.CODPROV ?? p.codprov ?? p.id ?? "").trim(),
+            name: String(p.NOMBRE_PROVINCIA ?? p.nombre ?? p.value ?? p.NOMBRE ?? "").trim(),
+          }))
+          .filter((p) => p.code && p.name)
+          .sort((a, b) => a.name.localeCompare(b.name, "es"));
 
-  // Estilos
-  const tag =
-    "inline-flex items-center rounded-full px-4 py-2 text-sm font-bold " +
-    "bg-indigo-50 text-indigo-700 border border-indigo-200";
+        setProvincias(mapped);
+      } catch (e) {
+        console.error("Error cargando provincias:", e);
+        setProvincias([]);
+      } finally {
+        setLoadingProv(false);
+      }
+    })();
+  }, []);
 
-  const inputBase =
-    "h-11 w-full sm:w-[460px] rounded-xl border border-gray-300 px-3 bg-white " +
-    "focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500";
+  /** Cuando cambia provincia: cargar municipios */
+  useEffect(() => {
+    (async () => {
+      if (!provincia) {
+        setMunicipios([]);
+        setMunicipio("");
+        return;
+      }
+      try {
+        setLoadingMun(true);
+        setMunicipio("");
 
-  // Centrar “— elegir —” cuando no hay valor; al seleccionar, texto a la izquierda
-  const selectClass = (v: string) =>
-    v ? `${inputBase} text-left` : `${inputBase} text-center text-gray-500`;
+        // ⬇️ URL con proxy Vite
+        const url = `/meteo/api/json/v2/provincias/${provincia}/municipios`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(String(res.status));
+        const data = await res.json();
 
-  // Separación muy grande entre bloques y entre etiqueta → control
-  const block = "mb-14"; // espacio entre bloques (etiquetas principales)
-  const labelGap: React.CSSProperties = { marginBottom: 18 }; // espacio grande etiqueta→control
+        const list = (Array.isArray(data) ? data : data.municipios || []) as any[];
+        const mapped: Municipio[] = list
+          .map((m) => ({
+            code: String(m.CODIGOINE ?? m.cod_ine ?? m.ID ?? m.id ?? "").trim(),
+            name: String(m.NOMBRE ?? m.nombre ?? m.municipio ?? "").trim(),
+          }))
+          .filter((m) => m.name)
+          .sort((a, b) => a.name.localeCompare(b.name, "es"));
+
+        setMunicipios(mapped);
+      } catch (e) {
+        console.error("Error cargando municipios:", e);
+        setMunicipios([]);
+      } finally {
+        setLoadingMun(false);
+      }
+    })();
+  }, [provincia]);
+
+  const navigate = useNavigate();
+  const [anio, setAnio] = useState<string>("");
+
+  const handleBuscar = () => {
+    const filtros: Record<string, string> = {
+      ...(nombre ? { nombre } : {}),
+      ...(provincia ? { provincia } : {}),
+      ...(municipio ? { municipio } : {}),
+      ...(anio ? { anio } : {}),
+    };
+    navigate({ pathname: "/resultados", search: `?${createSearchParams(filtros)}` });
+  };
+
+  const handleLimpiar = () => {
+    setNombre("");
+    setProvincia("");
+    setMunicipio("");
+    setAnio("");
+    setMunicipios([]);
+  };
 
   return (
-    <section className="rounded-2xl bg-white shadow-md border border-gray-100 p-6">
-      <h3 className="text-xl font-semibold text-gray-900 mb-2">Datos del difunto</h3>
-      <p className="text-sm text-gray-500 mb-10">
-        Rellena uno o varios campos para afinar la búsqueda.
-      </p>
-
-      {/* NOMBRE Y APELLIDOS (texto) */}
-      <div className={block}>
-        <label htmlFor={nameId} className={tag} style={labelGap}>
-          Nombre y apellidos
-        </label>
+    <form onSubmit={(e) => e.preventDefault()}>
+      <div className="form-stack">
         <div>
+          <label className="label">Nombre y apellidos</label>
           <input
-            id={nameId}
-            type="text"
-            className={inputBase}
+            className="input"
             placeholder="Ej: Juan Pérez García"
-            value={nombreApellidos}
-            onChange={(e) => setNombreApellidos(e.target.value)}
+            value={nombre}
+            onChange={(e) => setNombre(e.target.value)}
           />
         </div>
-      </div>
 
-      {/* CIUDAD (solo desplegable) */}
-      <div className={block}>
-        <label htmlFor={ciudadId} className={tag} style={labelGap}>
-          Ciudad
-        </label>
-        <div>
-          <select
-            id={ciudadId}
-            className={selectClass(ciudad)}
-            value={ciudad}
-            onChange={(e) => setCiudad(e.target.value)}
-          >
-            <option value="">{`— elegir —`}</option>
-            {municipios.map((m) => (
-              <option key={`c-${m}`} value={m}>
-                {m}
+        <div className="grid-2">
+          <div>
+            <label className="label">Ciudad / Provincia</label>
+            <select
+              className="select"
+              value={provincia}
+              onChange={(e) => setProvincia(e.target.value)}
+              disabled={loadingProv || provincias.length === 0}
+            >
+              <option value="">{loadingProv ? "Cargando..." : "— elegir —"}</option>
+              {provincias.map((p) => (
+                <option key={p.code} value={p.code}>{p.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="label">Pueblo / Municipio</label>
+            <select
+              className="select"
+              value={municipio}
+              onChange={(e) => setMunicipio(e.target.value)}
+              disabled={!provincia || loadingMun || municipios.length === 0}
+            >
+              <option value="">
+                {!provincia ? "— elige provincia —" : loadingMun ? "Cargando..." : (municipios.length ? "— elegir —" : "— sin datos —")}
               </option>
-            ))}
+              {municipios.map((m) => (
+                <option key={`${m.code}-${m.name}`} value={m.name}>{m.name}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label className="label">Año de fallecimiento</label>
+          <select className="select" value={anio} onChange={(e) => setAnio(e.target.value)}>
+            <option value="">— cualquier año —</option>
+            {anios.map((y) => <option key={y} value={y}>{y}</option>)}
           </select>
         </div>
-      </div>
 
-      {/* PUEBLO (solo desplegable) */}
-      <div className={block}>
-        <label htmlFor={puebloId} className={tag} style={labelGap}>
-          Pueblo
-        </label>
-        <div>
-          <select
-            id={puebloId}
-            className={selectClass(pueblo)}
-            value={pueblo}
-            onChange={(e) => setPueblo(e.target.value)}
-          >
-            <option value="">{`— elegir —`}</option>
-            {municipios.map((m) => (
-              <option key={`p-${m}`} value={m}>
-                {m}
-              </option>
-            ))}
-          </select>
+        <div className="actions">
+          <button type="button" className="btn secondary" onClick={handleLimpiar}>Limpiar</button>
+          <button type="button" className="btn primary" onClick={handleBuscar}>Buscar</button>
         </div>
       </div>
-
-      {/* AÑO DE FALLECIMIENTO (solo desplegable) */}
-      <div className={block}>
-        <label htmlFor={anioId} className={tag} style={labelGap}>
-          Año de fallecimiento
-        </label>
-        <div>
-          <select
-            id={anioId}
-            className={selectClass(anio)}
-            value={anio}
-            onChange={(e) => setAnio(e.target.value)}
-          >
-            <option value="">{`— cualquier año —`}</option>
-            {years.map((y) => (
-              <option key={y} value={y}>
-                {y}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-    </section>
+    </form>
   );
 }
-

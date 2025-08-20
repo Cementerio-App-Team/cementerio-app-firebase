@@ -1,14 +1,26 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from "react-router-dom";
 
-const Navbar = () => {
-  return (
-    <nav style={{ padding: '1rem', background: '#f3f4f6', display: 'flex', gap: '1rem' }}>
-      <Link to="/">Home</Link>
-      <Link to="/login">Login</Link>
-      <Link to="/register">Registro</Link>
-      <Link to="/panel">Panel</Link>
-    </nav>
+export default function NavBar() {
+  const { pathname } = useLocation();
+
+  const Item = ({ to, label }: { to: string; label: string }) => (
+    <li>
+      <Link to={to} className={`chip ${pathname === to ? "chip-active" : ""}`}>
+        {label}
+      </Link>
+    </li>
   );
-};
 
-export default Navbar;
+  return (
+    <header className="header">
+      <nav className="container">
+        <ul className="nav-list">
+          <Item to="/" label="Home" />
+          <Item to="/login" label="Login" />
+          <Item to="/register" label="Registro" />
+          <Item to="/panel" label="Panel" />
+        </ul>
+      </nav>
+    </header>
+  );
+}

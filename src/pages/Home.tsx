@@ -1,13 +1,19 @@
-import HomeHeader from "../components/home/HomeHeader";
 import HomeForm from "../components/home/HomeForm";
 
 export default function Home() {
   return (
-    <div className="min-h-dvh bg-gray-50">
-      <HomeHeader />
-      <main className="max-w-5xl mx-auto px-4 py-6">
+    <main className="container">
+      <h1 className="title">CementerioApp</h1>
+
+      <section className="card card-lg card-wide" style={{ marginTop: 24 }}>
+        <h2 className="section-heading">Datos del difunto</h2>
+        <p className="section-subtitle">
+          Rellena uno o varios campos para afinar la búsqueda.
+        </p>
+
         <HomeForm />
-      </main>
-    </div>
+      </section>
+    </main>
   );
 }
+

@@ -1,42 +1,181 @@
-#root {
-  max-width: 1280px;
+/* =======================
+   Reset & base
+   ======================= */
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+  background: #f7f7fb;
+  color: #1f2937;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* =======================
+   Layout
+   ======================= */
+.container {
+  max-width: 960px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 24px;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #ffffffcc;
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* =======================
+   Nav centrado en chips
+   ======================= */
+.nav-list {
+  list-style: none;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 0;
+  margin: 0;
+}
+.chip {
+  display: inline-block;
+  padding: 8px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  text-decoration: none;
+  color: #111827;
+  background: #fff;
+}
+.chip:hover { background: #f3f4f6; }
+.chip-active { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+
+/* =======================
+   Títulos
+   ======================= */
+.title {
+  font-size: 2.25rem; /* 36px */
+  line-height: 1.2;
+  font-weight: 800;
   text-align: center;
+  margin: 28px 0 8px;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.subtitle {
+  text-align: center;
+  color: #6b7280;
+  margin: 0 0 24px;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
+/* =======================
+   Cards
+   ======================= */
 .card {
-  padding: 2em;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 6px 24px -12px rgba(0, 0, 0, 0.2);
 }
 
-.read-the-docs {
-  color: #888;
+/* =======================
+   Form
+   ======================= */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
 }
+@media (max-width: 640px) {
+  .grid-2 { grid-template-columns: 1fr; }
+}
+
+.label { font-size: 0.9rem; color: #374151; margin-bottom: 6px; display: block; }
+
+.input, .select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background: #fff;
+  outline: none;
+}
+.input:focus, .select:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+
+.actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 6px;
+}
+
+.btn {
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+.btn.primary { background: #4f46e5; color: #fff; }
+.btn.secondary { background: #e5e7eb; color: #111827; }
+.btn.block { width: 100%; }
+
+/* ====== Mejora de maquetación ====== */
+
+/* separa el bloque del título */
+.mt-48 { margin-top: 48px; }
+
+/* tarjeta más elegante y centrada y algo más estrecha */
+.card-narrow { max-width: 720px; margin: 0 auto; }
+.card-lg { padding: 28px 32px; border-radius: 16px; box-shadow: 0 12px 34px -18px rgba(0,0,0,.25); }
+
+/* encabezados dentro de tarjeta */
+.section-heading {
+  font-size: 1.125rem; /* 18px */
+  font-weight: 700;
+  margin: 0 0 6px;
+}
+.section-subtitle {
+  margin: 0 0 20px;
+  color: #6b7280;
+}
+
+/* pila vertical con más espacio entre campos */
+.form-stack { display: flex; flex-direction: column; gap: 18px; }
+
+/* dos columnas en pantallas medianas+ */
+@media (min-width: 768px) {
+  .grid-2 { grid-template-columns: 1fr 1fr; gap: 18px; }
+}
+
+/* inputs un poco más altos para aspecto pro */
+.input, .select { height: 40px; }
+
+/* más espacio sobre los botones */
+.actions { margin-top: 16px; }
+
+/* ==== Centrado del cuadro === */
+.center-wrapper {
+  display: flex;
+  justify-content: center;      /* centra horizontalmente */
+}
+.card-wide {
+  width: 100%;
+  max-width: 760px;             /* un poco más estrecho y elegante */
+  margin: 32px auto;
+}
+
+/* ==== Tipografía más grande dentro del cuadro === */
+.card .section-heading { font-size: 1.25rem; }      /* 20px */
+.card .section-subtitle { font-size: 1rem; }
+
+/* Labels y campos más grandes y altos */
+.label { font-size: 1rem; font-weight: 600; }       /* sube desde 0.9rem */
+.input, .select { font-size: 1rem; height: 44px; }  /* campos más altos */
+
+/* Más respiración entre filas */
+.form-stack { display: flex; flex-direction: column; gap: 20px; }
