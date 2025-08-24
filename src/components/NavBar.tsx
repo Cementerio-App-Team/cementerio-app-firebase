@@ -15,7 +15,8 @@ export default function NavBar() {
     <header className="header">
       <nav className="container">
         <ul className="nav-list">
-          <Item to="/" label="Home" />
+          <Item to="/home" label="LandingPage" />
+          <Item to="/home" label="Home" />
           <Item to="/login" label="Login" />
           <Item to="/register" label="Registro" />
           <Item to="/panel" label="Panel" />
